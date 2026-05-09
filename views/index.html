@@ -296,6 +296,39 @@
                         </div>
                     </div>
 
+                    <!-- 九宫详情表格 -->
+                    <div class="pan-table-container">
+                        <table class="pan-table">
+                            <thead>
+                                <tr>
+                                    <th>宫位</th>
+                                    <th>天盘</th>
+                                    <th>地盘</th>
+                                    <th>九星</th>
+                                    <th>八门</th>
+                                    <th>八神</th>
+                                    <th>马星</th>
+                                    <th>空亡</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% const gongOrder = [4, 9, 2, 3, 5, 7, 8, 1, 6]; %>
+                                <% gongOrder.forEach(function(i) { %>
+                                <tr>
+                                    <td><%= i %>-<%= JIU_GONG[i] && JIU_GONG[i].name || '' %></td>
+                                    <td><%= qimen.sanQiLiuYi && qimen.sanQiLiuYi[i] || '' %></td>
+                                    <td><%= qimen.diPan && qimen.diPan[i] || '' %></td>
+                                    <td><%= qimen.jiuXing && qimen.jiuXing[i] || '' %></td>
+                                    <td><%= qimen.baMen && qimen.baMen[i] || '' %></td>
+                                    <td><%= qimen.baShen && qimen.baShen[i] || '' %></td>
+                                    <td><%= qimen.maStar && qimen.maStar.gong === String(i) ? '马' : '' %></td>
+                                    <td><%= qimen.kongWangGong && qimen.kongWangGong.includes(String(i)) ? '空' : '' %></td>
+                                </tr>
+                                <% }); %>
+                            </tbody>
+                        </table>
+                    </div>
+
                 </div>
             </div>
         </div>
