@@ -48,6 +48,16 @@
     </nav>
 
     <div class="container">
+        <% if (!qimen) { %>
+        <div class="row">
+            <div class="col-md-12 text-center">
+                <h2 class="page-title">奇门遁甲排盘</h2>
+                <div id="loading" class="alert alert-info">
+                    正在计算真太阳时并获取排盘数据...
+                </div>
+            </div>
+        </div>
+        <% } else { %>
         <div class="row">
             <div class="col-md-12 text-center">
                 <h2 class="page-title">奇门遁甲排盘</h2>
@@ -59,7 +69,7 @@
                         <strong>排盘方法:</strong> <span id="panMethod"><%= qimen.basicInfo && qimen.basicInfo.method || '' %></span>
                     </div>
                     <div class="info-item">
-                        <strong>公历:</strong> <span id="solarDate"><%= qimen.basicInfo && qimen.basicInfo.date || '' %></span>
+                        <strong>区时:</strong> <span id="solarDate"><%= qimen.basicInfo && qimen.basicInfo.date || '' %></span>
                     </div>
                     <div class="info-item">
                         <strong>农历:</strong> <span id="lunarDate"><%= qimen.basicInfo && qimen.basicInfo.lunarDate || '' %></span>
@@ -92,7 +102,9 @@
                 </div>
             </div>
         </div>
+        <% } %>
 
+        <% if (qimen) { %>
         <div class="row">
             <div class="col-md-12">
                 <!-- 奇门九宫图 -->
@@ -308,8 +320,8 @@
                             <thead>
                                 <tr>
                                     <th>宫位</th>
-                                    <th>天盘</th>
                                     <th>地盘</th>
+                                    <th>天盘</th>
                                     <th>九星</th>
                                     <th>八门</th>
                                     <th>八神</th>
@@ -322,8 +334,8 @@
                                 <% gongOrder.forEach(function(i) { %>
                                 <tr>
                                     <td><%= i %>-<%= JIU_GONG[i] && JIU_GONG[i].name || '' %></td>
-                                    <td><%= qimen.sanQiLiuYi && qimen.sanQiLiuYi[i] || '' %></td>
                                     <td><%= qimen.diPan && qimen.diPan[i] || '' %></td>
+                                    <td><%= qimen.sanQiLiuYi && qimen.sanQiLiuYi[i] || '' %></td>
                                     <td><%= qimen.jiuXing && qimen.jiuXing[i] || '' %></td>
                                     <td><%= qimen.baMen && qimen.baMen[i] || '' %></td>
                                     <td><%= qimen.baShen && qimen.baShen[i] || '' %></td>
@@ -413,6 +425,7 @@
                 </div>
             </div>
         </div>
+        <% } %>
     </div>
 
     <!-- 城市选择模态框 -->

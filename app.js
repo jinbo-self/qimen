@@ -53,7 +53,11 @@ app.get('/', (req, res) => {
     
     const date = getDateFromTimestamp(timestamp);
     if (!date) {
-        return res.status(400).send('请提供有效的时间戳');
+        res.locals.JIU_GONG = qimen.JIU_GONG;
+        res.locals.JIU_XING = qimen.JIU_XING;
+        res.locals.BA_MEN = qimen.BA_MEN;
+        res.locals.BA_SHEN = qimen.BA_SHEN;
+        return res.render('index', {qimen: null});
     }
 
     const options = {
@@ -107,7 +111,6 @@ app.get('/api/qimen', (req, res) => {
             purpose,
             location
         };
-
         const qimenPan = qimen.calculate(date, options);
 
         if (!qimenPan.jiuGongAnalysis) {

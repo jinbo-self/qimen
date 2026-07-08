@@ -1,15 +1,46 @@
 var currentCity = JSON.parse(localStorage.getItem('qimen_city')) || DEFAULT_CITY;
 
 function calculateTrueSolarTime(beijingTime, lat, lng) {
-    var deltaT = calculateDeltaT(beijingTime);
-    var equationOfTime = calculateEquationOfTime(beijingTime);
-    var longitudeOffset = (lng - 120) * 4;
-    var trueSolarMinutes = beijingTime.getHours() * 60 + beijingTime.getMinutes() + longitudeOffset + equationOfTime;
+    console.log(beijingTime, lat, lng);
+    
+    // 1. 删除未使用的 deltaT（或后续集成）
+    // var deltaT = calculateDeltaT(beijingTime); 
+    
+    // 2. 获取均时差（假设该函数返回的是【秒】）
+    var equationOfTimeSeconds = calculateEquationOfTime(beijingTime);
+    
+    // 3. 计算经度时差（分钟）
+    var longitudeOffsetMinutes = (lng - 120) * 4;
+    
+    // 4. 计算真太阳时总分钟数（将秒转换为分钟）
+    var trueSolarMinutes = beijingTime.getHours() * 60 + beijingTime.getMinutes() 
+                           + longitudeOffsetMinutes 
+                           + (equationOfTimeSeconds / 60); // 关键修正点！
+    
     var trueSolarTime = new Date(beijingTime.getTime());
-    var totalMinutes = Math.round(trueSolarMinutes);
-    trueSolarTime.setHours(Math.floor(totalMinutes / 60));
-    trueSolarTime.setMinutes(totalMinutes % 60);
-    trueSolarTime.setSeconds(0);
+    // 修改后（去掉Math.round，保留小数）
+    var hours = Math.floor(trueSolarMinutes / 60);
+    var minutes = Math.floor(trueSolarMinutes % 60);
+    var seconds = Math.round((trueSolarMinutes % 1) * 60);
+
+    // 处理60秒进位
+    if (seconds === 60) {
+        seconds = 0;
+        minutes++;
+        if (minutes === 60) {
+            minutes = 0;
+            hours++;
+        }
+    }
+
+    // 一次性设置时、分、秒（秒数会覆盖掉克隆自原时间的秒数）
+    trueSolarTime.setHours(hours, minutes, seconds, 0);
+    // var totalMinutes = Math.round(trueSolarMinutes);
+    // trueSolarTime.setHours(Math.floor(totalMinutes / 60));
+    // trueSolarTime.setMinutes(totalMinutes % 60);
+    // trueSolarTime.setSeconds(0);
+    
+    console.log(trueSolarTime);
     return trueSolarTime;
 }
 
@@ -276,6 +307,24 @@ function maintainAspectRatio() {
     $('.gong').css('height', gridWidth / 3 + 'px');
 }
 
+function loadInitialPan() {
+    var beijingTime = new Date();
+    var trueSolarTime = calculateTrueSolarTime(beijingTime, currentCity.lat, currentCity.lng);
+    var currentTimestamp = trueSolarTime.getTime();
+    
+    var urlParams = new URLSearchParams(window.location.search);
+    var existingTimestamp = urlParams.get('timestamp');
+    
+    if (!existingTimestamp || Math.abs(currentTimestamp - parseInt(existingTimestamp)) > 1000) {
+        window.location.href = '/?' + $.param({
+            timestamp: currentTimestamp,
+            location: currentCity.province + currentCity.city + currentCity.district,
+            lat: currentCity.lat,
+            lng: currentCity.lng
+        });
+    }
+}
+
 $(document).ready(function() {
     initCitySelectors();
     initRealTimePan();
@@ -284,4 +333,6 @@ $(document).ready(function() {
     $(window).resize(maintainAspectRatio);
     
     $('#cityDisplay').text(currentCity.province + currentCity.city + currentCity.district);
+    
+    loadInitialPan();
 });
