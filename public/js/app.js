@@ -278,6 +278,8 @@ function initCustomPan() {
         var beijingTime = new Date(dateStr + 'T' + timeStr + ':00');
         var trueSolarTime = calculateTrueSolarTime(beijingTime, currentCity.lat, currentCity.lng);
         
+        var question = $('#question').val();
+        
         var url = '/api/qimen?' + $.param({
             timestamp: trueSolarTime.getTime(),
             location: location,
@@ -285,7 +287,8 @@ function initCustomPan() {
             lng: currentCity.lng,
             type: $('#type').val(),
             method: $('#method').val(),
-            purpose: $('#purpose').val()
+            purpose: $('#purpose').val(),
+            question: question
         });
         
         window.location.href = '/custom?' + $.param({
@@ -296,6 +299,7 @@ function initCustomPan() {
             type: $('#type').val(),
             method: $('#method').val(),
             purpose: $('#purpose').val(),
+            question: question,
             date: dateStr,
             time: timeStr
         });

@@ -17,9 +17,9 @@ function getDateFromTimestamp(timestamp) {
     return null;
 }
 
-function renderPan(res, date, options) {
+async function renderPan(res, date, options) {
     try {
-        const qimenPan = qimen.calculate(date, options);
+        const qimenPan = await qimen.calculate(date, options);
 
         if (!qimenPan.jiuGongAnalysis) {
             qimenPan.jiuGongAnalysis = {};
@@ -39,7 +39,6 @@ function renderPan(res, date, options) {
         res.locals.JIU_XING = qimen.JIU_XING;
         res.locals.BA_MEN = qimen.BA_MEN;
         res.locals.BA_SHEN = qimen.BA_SHEN;
-
         res.render('index', {qimen: qimenPan});
     } catch (error) {
         console.error('排盘错误:', error);
@@ -47,9 +46,10 @@ function renderPan(res, date, options) {
     }
 }
 
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
     const timestamp = req.query.timestamp;
     const location = req.query.location || '四川省广安市广安区';
+    const question = req.query.question || '';
     
     const date = getDateFromTimestamp(timestamp);
     if (!date) {
@@ -64,17 +64,19 @@ app.get('/', (req, res) => {
         type: '四柱',
         method: '时家',
         purpose: '综合',
-        location: location
+        location: location,
+        question: question
     };
 
-    renderPan(res, date, options);
+    await renderPan(res, date, options);
 });
 
-app.get('/custom', (req, res) => {
+app.get('/custom', async (req, res) => {
     const type = req.query.type || '四柱';
     const method = req.query.method || '时家';
     const purpose = req.query.purpose || '综合';
     const location = req.query.location || '四川省广安市广安区';
+    const question = req.query.question || '';
     const timestamp = req.query.timestamp;
 
     const date = getDateFromTimestamp(timestamp);
@@ -86,17 +88,19 @@ app.get('/custom', (req, res) => {
         type,
         method,
         purpose,
-        location
+        location,
+        question
     };
 
-    renderPan(res, date, options);
+    await renderPan(res, date, options);
 });
 
-app.get('/api/qimen', (req, res) => {
+app.get('/api/qimen', async (req, res) => {
     const type = req.query.type || '四柱';
     const method = req.query.method || '时家';
     const purpose = req.query.purpose || '综合';
     const location = req.query.location || '四川省广安市广安区';
+    const question = req.query.question || '';
     const timestamp = req.query.timestamp;
 
     const date = getDateFromTimestamp(timestamp);
@@ -109,9 +113,10 @@ app.get('/api/qimen', (req, res) => {
             type,
             method,
             purpose,
-            location
+            location,
+            question
         };
-        const qimenPan = qimen.calculate(date, options);
+        const qimenPan = await qimen.calculate(date, options);
 
         if (!qimenPan.jiuGongAnalysis) {
             qimenPan.jiuGongAnalysis = {};
