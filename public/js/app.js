@@ -130,11 +130,11 @@ function updatePan(timestamp, city) {
         gongOrder.forEach(function(i) {
             var cell = $('table.pan-table tbody tr').eq(gongOrder.indexOf(i));
             if (cell.length > 0) {
-                cell.find('td:eq(1)').text(data.sanQiLiuYi && data.sanQiLiuYi[i] || '');
-                cell.find('td:eq(2)').text(data.diPan && data.diPan[i] || '');
-                cell.find('td:eq(3)').text(data.jiuXing && data.jiuXing[i] || '');
-                cell.find('td:eq(4)').text(data.baMen && data.baMen[i] || '');
-                cell.find('td:eq(5)').text(data.baShen && data.baShen[i] || '');
+                cell.find('td:eq(1)').text(data.diPan && data.diPan[String(i)] || '');
+                cell.find('td:eq(2)').text(data.sanQiLiuYi && data.sanQiLiuYi[String(i)] || '');
+                cell.find('td:eq(3)').text(data.jiuXing && data.jiuXing[String(i)] || '');
+                cell.find('td:eq(4)').text(data.baMen && data.baMen[String(i)] || '');
+                cell.find('td:eq(5)').text(data.baShen && data.baShen[String(i)] || '');
                 cell.find('td:eq(6)').text(data.maStar && data.maStar.gong === String(i) ? '马' : '');
                 cell.find('td:eq(7)').text(data.kongWangGong && data.kongWangGong.includes(String(i)) ? '空' : '');
             }

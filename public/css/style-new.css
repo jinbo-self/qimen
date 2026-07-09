@@ -60,7 +60,7 @@ body {
     grid-template-rows: repeat(3, 1fr);
     gap: 0;
     width: 100%;
-    max-width: 480px;
+    max-width: 560px;
     aspect-ratio: 1/1;
     position: relative;
     z-index: 2;
@@ -133,15 +133,16 @@ body {
     height: 100%;
     width: 100%;
     position: relative;
-    padding: 4px;
+    padding: 2px;
     gap: 0;
+    overflow: visible;
 }
 
 /* 地支(暗干) - 左上角灰色 */
 .gong-dizhi {
     grid-area: gong-dizhi;
     text-align: left;
-    font-size: 18px;
+    font-size: 14px;
     color: #aaa;
     display: flex;
     align-items: center;
@@ -163,7 +164,7 @@ body {
 .gong-bashen {
     grid-area: gong-bashen;
     text-align: center;
-    font-size: 18px;
+    font-size: 14px;
     font-weight: bold;
     display: flex;
     align-items: center;
@@ -174,7 +175,7 @@ body {
 .gong-tianganfang {
     grid-area: gong-tianganfang;
     text-align: center;
-    font-size: 18px;
+    font-size: 14px;
     color: #aaa;
     display: flex;
     justify-content: center;
@@ -197,7 +198,7 @@ body {
 .gong-bamen {
     grid-area: gong-bamen;
     text-align: center;
-    font-size: 18px;
+    font-size: 14px;
     font-weight: bold;
     display: flex;
     justify-content: center;
@@ -210,16 +211,23 @@ body {
 }
 
 
-/* 九星 - 居中显示 */
+/* 九星 - 居中显示，支持多个 */
 .gong-jiuxing {
     grid-area: gong-jiuxing;
     text-align: center;
-    font-size: 18px;
+    font-size: 12px;
     font-weight: bold;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     white-space: nowrap;
+    gap: 0;
+}
+
+.jiuxing-item {
+    display: block;
+    line-height: 1.1;
 }
 
 
@@ -227,11 +235,11 @@ body {
 .gong-gongname {
     grid-area: gong-gongname;
     text-align: left;
-    font-size: 18px;
+    font-size: 14px;
     display: flex;
     align-items: flex-end;
     justify-content: flex-start;
-    padding-bottom: 2px;
+    padding-bottom: 1px;
 }
 
 /* 宫位名2 - 左中位置 */
@@ -249,23 +257,30 @@ body {
 .gong-number {
     grid-area: gong-number;
     text-align: center;
-    font-size: 18px;
+    font-size: 14px;
     color: #000;
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    padding-bottom: 2px;
+    padding-bottom: 1px;
 }
 
-/* 天干 - 右侧位置，与八门水平对齐 */
+/* 天干 - 右侧位置，与八门水平对齐，支持多个 */
 .gong-tiangan {
     grid-area: gong-tiangan;
-    font-size: 18px;
+    font-size: 14px;
     font-weight: bold;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     height: 100%;
+    gap: 0;
+}
+
+.tiangan-item {
+    display: block;
+    line-height: 1.1;
 }
 
 
@@ -273,7 +288,7 @@ body {
 /* 地盘干 - 右下角 */
 .gong-dipan {
     grid-area: gong-dipan;
-    font-size: 18px;
+    font-size: 14px;
     font-weight: bold;
     display: flex;
     justify-content: center;

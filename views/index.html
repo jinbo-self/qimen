@@ -332,16 +332,16 @@
                             <tbody>
                                 <% const gongOrder = [4, 9, 2, 3, 5, 7, 8, 1, 6]; %>
                                 <% gongOrder.forEach(function(i) { %>
-                                <tr>
-                                    <td><%= i %>-<%= JIU_GONG[i] && JIU_GONG[i].name || '' %></td>
-                                    <td><%= qimen.diPan && qimen.diPan[i] || '' %></td>
-                                    <td><%= qimen.sanQiLiuYi && qimen.sanQiLiuYi[i] || '' %></td>
-                                    <td><%= qimen.jiuXing && qimen.jiuXing[i] || '' %></td>
-                                    <td><%= qimen.baMen && qimen.baMen[i] || '' %></td>
-                                    <td><%= qimen.baShen && qimen.baShen[i] || '' %></td>
-                                    <td><%= qimen.maStar && qimen.maStar.gong === String(i) ? '马' : '' %></td>
-                                    <td><%= qimen.kongWangGong && qimen.kongWangGong.includes(String(i)) ? '空' : '' %></td>
-                                </tr>
+                                    <tr>
+                                        <td><%= i %>-<%= JIU_GONG[i] && JIU_GONG[i].name || '' %></td>
+                                        <td><%= qimen.diPan && qimen.diPan[String(i)] || '' %></td>
+                                        <td><%= qimen.sanQiLiuYi && qimen.sanQiLiuYi[String(i)] || '' %></td>
+                                        <td><%= qimen.jiuXing && qimen.jiuXing[String(i)] || '' %></td>
+                                        <td><%= qimen.baMen && qimen.baMen[String(i)] || '' %></td>
+                                        <td><%= qimen.baShen && qimen.baShen[String(i)] || '' %></td>
+                                        <td><%= qimen.maStar && qimen.maStar.gong === String(i) ? '马' : '' %></td>
+                                        <td><%= qimen.kongWangGong && qimen.kongWangGong.includes(String(i)) ? '空' : '' %></td>
+                                    </tr>
                                 <% }); %>
                             </tbody>
                         </table>

@@ -73,59 +73,67 @@
     <!-- 宫位名2 - 隐藏元素 -->
     <div class="gong-gongname2"></div>
     
-    <!-- 九星 - 居中显示 -->
+    <!-- 九星 - 居中显示，支持多个九星 -->
     <%
     var displayJiuXing = typeof jiuXing !== 'undefined' ? jiuXing : '';
-    var xingColor = "";
-    if (displayJiuXing.includes('天蓬')) {
-        xingColor = "wuxing-shui";
-    } else if (displayJiuXing.includes('天冲')) {
-        xingColor = "wuxing-mu";
-    } else if (displayJiuXing.includes('天辅')) {
-        xingColor = "wuxing-mu";
-    } else if (displayJiuXing.includes('天英')) {
-        xingColor = "wuxing-huo";
-    } else if (displayJiuXing.includes('天柱')) {
-        xingColor = "wuxing-jin";
-    } else if (displayJiuXing.includes('天心')) {
-        xingColor = "wuxing-jin";
-    } else if (displayJiuXing.includes('天芮') || displayJiuXing.includes('天禽') || displayJiuXing.includes('天任') || displayJiuXing.includes('禽') || displayJiuXing.includes('芮')) {
-        xingColor = "wuxing-tu";
-    }
+    var jiuXingArray = displayJiuXing ? displayJiuXing.split('、') : [];
     %>
-    <div class="gong-jiuxing <%= xingColor %>">
-        <%= displayJiuXing %>
+    <div class="gong-jiuxing">
+        <% jiuXingArray.forEach(function(xing, index) { %>
+            <%
+            var xingColor = "";
+            if (xing.includes('天蓬')) {
+                xingColor = "wuxing-shui";
+            } else if (xing.includes('天冲')) {
+                xingColor = "wuxing-mu";
+            } else if (xing.includes('天辅')) {
+                xingColor = "wuxing-mu";
+            } else if (xing.includes('天英')) {
+                xingColor = "wuxing-huo";
+            } else if (xing.includes('天柱')) {
+                xingColor = "wuxing-jin";
+            } else if (xing.includes('天心')) {
+                xingColor = "wuxing-jin";
+            } else if (xing.includes('天芮') || xing.includes('天禽') || xing.includes('天任') || xing.includes('禽') || xing.includes('芮')) {
+                xingColor = "wuxing-tu";
+            }
+            %>
+            <span class="jiuxing-item <%= xingColor %>"><%= xing %></span><%- index < jiuXingArray.length - 1 ? '<br/>' : '' %>
+        <% }); %>
     </div>
     
-    <!-- 天干 - 右侧显示 -->
+    <!-- 天干 - 右侧显示，支持多个天盘干 -->
     <%
     var displayTianPan = typeof tianPan !== 'undefined' ? tianPan : '';
     var displayDayXunShou = typeof dayXunShou !== 'undefined' ? dayXunShou : '';
-    var tianpanColor = "";
-    var tianpanBorderColor = "";
-    if (displayTianPan === '戊' || displayTianPan === '己') {
-        tianpanColor = "wuxing-tu";
-        tianpanBorderColor = "border-tu";
-    } else if (displayTianPan === '庚' || displayTianPan === '辛') {
-        tianpanColor = "wuxing-jin";
-        tianpanBorderColor = "border-jin";
-    } else if (displayTianPan === '壬' || displayTianPan === '癸') {
-        tianpanColor = "wuxing-shui";
-        tianpanBorderColor = "border-shui";
-    } else if (displayTianPan === '丁' || displayTianPan === '丙') {
-        tianpanColor = "wuxing-huo";
-        tianpanBorderColor = "border-huo";
-    } else if (displayTianPan === '乙' || displayTianPan === '甲') {
-        tianpanColor = "wuxing-mu";
-        tianpanBorderColor = "border-mu";
-    }
-
-    // 在某些特殊情况下，天盘干可能不存在
-    var isEmpty = !displayTianPan || displayTianPan === '';
-    // 判断是否为日柱旬首六仪
-    var isDayXunShou = displayTianPan && displayDayXunShou && displayTianPan === displayDayXunShou;
+    var tianPanArray = displayTianPan ? displayTianPan.split('、') : [];
     %>
-    <div class="gong-tiangan <%= tianpanColor %> <%= isDayXunShou ? 'tianpan-boxed ' + tianpanBorderColor : '' %>"><%= !isEmpty ? displayTianPan : '' %></div>
+    <div class="gong-tiangan">
+        <% tianPanArray.forEach(function(tianGan, index) { %>
+            <%
+            var tianpanColor = "";
+            var tianpanBorderColor = "";
+            if (tianGan === '戊' || tianGan === '己') {
+                tianpanColor = "wuxing-tu";
+                tianpanBorderColor = "border-tu";
+            } else if (tianGan === '庚' || tianGan === '辛') {
+                tianpanColor = "wuxing-jin";
+                tianpanBorderColor = "border-jin";
+            } else if (tianGan === '壬' || tianGan === '癸') {
+                tianpanColor = "wuxing-shui";
+                tianpanBorderColor = "border-shui";
+            } else if (tianGan === '丁' || tianGan === '丙') {
+                tianpanColor = "wuxing-huo";
+                tianpanBorderColor = "border-huo";
+            } else if (tianGan === '乙' || tianGan === '甲') {
+                tianpanColor = "wuxing-mu";
+                tianpanBorderColor = "border-mu";
+            }
+            var isDayXunShou = tianGan && displayDayXunShou && tianGan === displayDayXunShou;
+            %>
+            <span class="tiangan-item <%= tianpanColor %> <%= isDayXunShou ? 'tianpan-boxed ' + tianpanBorderColor : '' %>"><%= tianGan %></span><%- index < tianPanArray.length - 1 ? '<br/>' : '' %>
+        <% }); %>
+    </div>
     
     <!-- 宫位名 - 左下角 -->
     <% 
