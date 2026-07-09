@@ -8,6 +8,7 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'html');
 app.engine('html', require('ejs').renderFile);
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json());
 app.disable('view cache');
 
 function getDateFromTimestamp(timestamp) {
@@ -102,6 +103,7 @@ app.get('/api/qimen', async (req, res) => {
     const location = req.query.location || '四川省广安市广安区';
     const question = req.query.question || '';
     const timestamp = req.query.timestamp;
+    const skipAnalysis = req.query.skipAnalysis === 'true';
 
     const date = getDateFromTimestamp(timestamp);
     if (!date) {
@@ -114,7 +116,8 @@ app.get('/api/qimen', async (req, res) => {
             method,
             purpose,
             location,
-            question
+            question,
+            skipAnalysis
         };
         const qimenPan = await qimen.calculate(date, options);
 
@@ -136,6 +139,43 @@ app.get('/api/qimen', async (req, res) => {
     } catch (error) {
         console.error('API排盘错误:', error);
         res.status(500).json({error: '排盘错误', message: error.message});
+    }
+});
+
+app.post('/api/ai-analysis', async (req, res) => {
+    try {
+        const { qimenResult, purpose, question } = req.body;
+        
+        if (!qimenResult) {
+            return res.status(400).json({error: '请提供排盘结果'});
+        }
+
+        const aiResult = await qimen.aiAnalysis(qimenResult, purpose || '综合', question || '');
+        
+        const localAnalysis = qimen.overallAnalysis(
+            qimenResult.jiuGongAnalysis, 
+            qimenResult.zhiFuGong, 
+            qimenResult.zhiShiGong, 
+            purpose || '综合'
+        );
+        
+        const analysis = {
+            ...localAnalysis,
+            ...aiResult
+        };
+        
+        res.json({ success: true, analysis });
+    } catch (error) {
+        console.error('AI分析错误:', error);
+        
+        const localAnalysis = qimen.overallAnalysis(
+            req.body.qimenResult && req.body.qimenResult.jiuGongAnalysis || {}, 
+            req.body.qimenResult && req.body.qimenResult.zhiFuGong || '', 
+            req.body.qimenResult && req.body.qimenResult.zhiShiGong || '', 
+            req.body.purpose || '综合'
+        );
+        
+        res.json({ success: true, analysis: { ...localAnalysis, aiAnalysis: 'AI分析失败，请稍后重试' } });
     }
 });
 

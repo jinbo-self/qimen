@@ -1,4 +1,116 @@
 var currentCity = JSON.parse(localStorage.getItem('qimen_city')) || DEFAULT_CITY;
+var aiAnalysisRequest = null;
+
+function overallAnalysis(jiuGongAnalysis, zhiFuGong, zhiShiGong, purpose) { 
+    var zhiFuJiXiong = jiuGongAnalysis[zhiFuGong] ? jiuGongAnalysis[zhiFuGong].jiXiong : 'ping'; 
+    var zhiShiJiXiong = jiuGongAnalysis[zhiShiGong] ? jiuGongAnalysis[zhiShiGong].jiXiong : 'ping'; 
+     
+    var overallJiXiong; 
+    if (zhiFuJiXiong === 'da_ji' && zhiShiJiXiong === 'da_ji') { 
+        overallJiXiong = 'da_ji'; 
+    } else if (zhiFuJiXiong.includes('ji') && zhiShiJiXiong.includes('ji')) { 
+        overallJiXiong = 'xiao_ji'; 
+    } else if (zhiFuJiXiong.includes('xiong') && zhiShiJiXiong.includes('xiong')) { 
+        overallJiXiong = 'da_xiong'; 
+    } else if (zhiFuJiXiong.includes('xiong') || zhiShiJiXiong.includes('xiong')) { 
+        overallJiXiong = 'xiao_xiong'; 
+    } else { 
+        overallJiXiong = 'ping'; 
+    } 
+     
+    var bestGong = ''; 
+    var bestScore = -3; 
+     
+    for (var gong in jiuGongAnalysis) { 
+        var analysis = jiuGongAnalysis[gong]; 
+        var score = 0; 
+         
+        switch (analysis.jiXiong) { 
+            case 'da_ji': score += 2; break; 
+            case 'xiao_ji': score += 1; break; 
+            case 'ping': break; 
+            case 'xiao_xiong': score -= 1; break; 
+            case 'da_xiong': score -= 2; break; 
+        } 
+         
+        if (purpose === '事业' && ['1', '6', '9'].includes(gong)) { 
+            score += 1; 
+        } else if (purpose === '财运' && ['1', '7', '6'].includes(gong)) { 
+            score += 1; 
+        } else if (purpose === '婚姻' && ['2', '7', '9'].includes(gong)) { 
+            score += 1; 
+        } else if (purpose === '健康' && ['3', '9', '4'].includes(gong)) { 
+            score += 1; 
+        } else if (purpose === '学业' && ['4', '9', '3'].includes(gong)) { 
+            score += 1; 
+        } 
+         
+        if (score > bestScore) { 
+            bestScore = score; 
+            bestGong = gong; 
+        } 
+    } 
+     
+    var suggestions = []; 
+     
+    switch (overallJiXiong) { 
+        case 'da_ji': 
+            suggestions.push("当前时运极佳，可大胆行事，推进重要计划。"); 
+            suggestions.push("贵人运强，适合社交活动和寻求支持。"); 
+            suggestions.push("财运亨通，可考虑投资或财务规划。"); 
+            break; 
+        case 'xiao_ji': 
+            suggestions.push("时运较好，可稳步推进计划，但需谨慎。"); 
+            suggestions.push("有贵人相助，但也需自身努力。"); 
+            suggestions.push("财运平稳，宜守不宜进。"); 
+            break; 
+        case 'ping': 
+            suggestions.push("时运平平，宜按部就班行事，不宜冒险。"); 
+            suggestions.push("人际关系一般，需多加维护。"); 
+            suggestions.push("财运一般，宜节制开支。"); 
+            break; 
+        case 'xiao_xiong': 
+            suggestions.push("时运不佳，宜守不宜进，避免冒险。"); 
+            suggestions.push("谨防小人，保持低调。"); 
+            suggestions.push("财务宜节约，避免大额支出。"); 
+            break; 
+        case 'da_xiong': 
+            suggestions.push("当前时运不佳，宜避开重要活动，保持低调。"); 
+            suggestions.push("谨防小人和突发事件，避免冲突。"); 
+            suggestions.push("财务宜严格控制，避免任何投资和大额支出。"); 
+            break; 
+    } 
+     
+    if (bestGong) { 
+        var bestGongInfo = jiuGongAnalysis[bestGong]; 
+        suggestions.push("最有利方位在" + (bestGongInfo.direction || '') + "方(" + (bestGongInfo.gongName || '') + "宫)，可多往此方位活动。"); 
+         
+        if (purpose === '事业') { 
+            suggestions.push("事业方面，注重稳扎稳打，积累经验和人脉，时机成熟再大展拳脚。"); 
+        } else if (purpose === '财运') { 
+            suggestions.push("财运方面，建议稳健理财，避免投机，重视积累和长期规划。"); 
+        } else if (purpose === '婚姻') { 
+            suggestions.push("婚姻方面，注重沟通和理解，创造和谐的家庭氛围。"); 
+        } else if (purpose === '健康') { 
+            suggestions.push("健康方面，注意作息规律，适当运动，保持心情愉快。"); 
+        } else if (purpose === '学业') { 
+            suggestions.push("学业方面，制定合理计划，坚持不懈，善于利用资源和请教他人。"); 
+        } 
+    } 
+     
+    return { 
+        overallJiXiong: overallJiXiong, 
+        overallJiXiongText: { 
+            'da_ji': '大吉', 
+            'xiao_ji': '小吉', 
+            'ping': '平', 
+            'xiao_xiong': '小凶', 
+            'da_xiong': '大凶' 
+        }[overallJiXiong], 
+        bestGong: bestGong, 
+        suggestions: suggestions 
+    }; 
+}
 
 function calculateTrueSolarTime(beijingTime, lat, lng) {
     console.log(beijingTime, lat, lng);
@@ -85,12 +197,14 @@ function calculateEquationOfTime(date) {
     return equationOfTime * 4;
 }
 
-function updatePan(timestamp, city) {
+function updatePan(timestamp, city, purpose, question) {
     var url = '/api/qimen?' + $.param({
         timestamp: timestamp,
         location: city.province + city.city + city.district,
         lat: city.lat,
-        lng: city.lng
+        lng: city.lng,
+        purpose: purpose || '综合',
+        skipAnalysis: true
     });
     
     $.getJSON(url, function(data) {
@@ -120,11 +234,7 @@ function updatePan(timestamp, city) {
         $('#zhiFu').text((data.zhiFuXing || '') + '(' + (data.zhiFuGong || '') + '宫)');
         $('#zhiShi').text((data.zhiShiMen || '') + '(' + (data.zhiShiGong || '') + '宫)');
         
-        if (data.analysis) {
-            $('#overallLuck').removeClass('da_ji xiao_ji ping xiao_xiong da_xiong');
-            $('#overallLuck').addClass(data.analysis.overallJiXiong || 'ping');
-            $('#overallLuck').text(data.analysis.overallJiXiongText || '平');
-        }
+        updateLocalAnalysis(data, purpose || '综合');
         
         var gongOrder = [4, 9, 2, 3, 5, 7, 8, 1, 6];
         gongOrder.forEach(function(i) {
@@ -139,9 +249,132 @@ function updatePan(timestamp, city) {
                 cell.find('td:eq(7)').text(data.kongWangGong && data.kongWangGong.includes(String(i)) ? '空' : '');
             }
         });
+        
+        callAiAnalysis(data, purpose || '综合', question || '');
     }).fail(function() {
         alert('获取排盘数据失败');
     });
+}
+
+function updateLocalAnalysis(qimenResult, purpose) {
+    var analysis = overallAnalysis(qimenResult.jiuGongAnalysis, qimenResult.zhiFuGong, qimenResult.zhiShiGong, purpose);
+    
+    $('#overallLuck').removeClass('da_ji xiao_ji ping xiao_xiong da_xiong');
+    $('#overallLuck').addClass(analysis.overallJiXiong || 'ping');
+    $('#overallLuck').text(analysis.overallJiXiongText || '平');
+    
+    $('.panel-primary .panel-body .suggestion-list').remove();
+    
+    if (analysis.suggestions && Array.isArray(analysis.suggestions)) {
+        var suggestionsHtml = '<strong>建议:</strong><ul class="suggestion-list">';
+        analysis.suggestions.forEach(function(suggestion) {
+            suggestionsHtml += '<li>' + suggestion + '</li>';
+        });
+        suggestionsHtml += '</ul>';
+        $('.panel-primary .panel-body').append(suggestionsHtml);
+    }
+}
+
+function cancelAiAnalysis() {
+    if (aiAnalysisRequest) {
+        aiAnalysisRequest.abort();
+        aiAnalysisRequest = null;
+    }
+    $('#aiLoading').hide();
+}
+
+function callAiAnalysis(qimenResult, purpose, question) {
+    cancelAiAnalysis();
+    
+    $('#aiLoading').css('display', 'flex');
+    $('#aiAnalysisResult').html('<p class="text-center text-muted">AI分析正在加载中...</p>');
+    
+    aiAnalysisRequest = $.ajax({
+        url: '/api/ai-analysis',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            qimenResult: qimenResult,
+            purpose: purpose,
+            question: question
+        }),
+        success: function(response) {
+            aiAnalysisRequest = null;
+            $('#aiLoading').hide();
+            
+            if (response.success && response.analysis) {
+                var analysis = response.analysis;
+                
+                $('#overallLuck').removeClass('da_ji xiao_ji ping xiao_xiong da_xiong');
+                $('#overallLuck').addClass(analysis.overallJiXiong || 'ping');
+                $('#overallLuck').text(analysis.overallJiXiongText || '平');
+                
+                if (analysis.aiAnalysis) {
+                    var formattedHtml = formatMarkdown(analysis.aiAnalysis);
+                    $('#aiAnalysisResult').html(formattedHtml);
+                }
+                
+                if (analysis.suggestions && Array.isArray(analysis.suggestions)) {
+                    $('.panel-primary .panel-body .suggestion-list').remove();
+                    var suggestionsHtml = '<strong>建议:</strong><ul class="suggestion-list">';
+                    analysis.suggestions.forEach(function(suggestion) {
+                        suggestionsHtml += '<li>' + suggestion + '</li>';
+                    });
+                    suggestionsHtml += '</ul>';
+                    $('.panel-primary .panel-body').append(suggestionsHtml);
+                }
+            }
+        },
+        error: function(xhr) {
+            aiAnalysisRequest = null;
+            if (xhr.statusText !== 'abort') {
+                $('#aiLoading').hide();
+                $('#aiAnalysisResult').html('<p class="text-center text-danger">AI分析失败，请稍后重试</p>');
+            }
+        }
+    });
+}
+
+function formatMarkdown(text) {
+    if (!text) return '';
+    
+    text = text.replace(/```(\w+)?\n([\s\S]*?)```/g, function(match, lang, code) {
+        return '<pre><code>' + code.trim() + '</code></pre>';
+    });
+    
+    text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+    
+    text = text.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+    text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    
+    text = text.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+    text = text.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+    text = text.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+    
+    text = text.replace(/\n\n/g, '</p><p>');
+    text = text.replace(/\n/g, '<br>');
+    
+    text = text.replace(/^- (.+)$/gm, '<li>$1</li>');
+    text = text.replace(/<\/li><br><li>/g, '</li><li>');
+    text = text.replace(/(<li>.*<\/li>)/g, '<ul>$1</ul>');
+    
+    text = text.replace(/^(\d+)\. (.+)$/gm, '<li>$1. $2</li>');
+    text = text.replace(/(<li>\d+\. .*<\/li>)/g, '<ol>$1</ol>');
+    
+    text = text.replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>');
+    
+    text = text.replace(/(?<!\w)\*(?!\w)/g, '');
+    
+    text = text.replace(/[*]{2,}/g, '');
+    
+    text = text.replace(/\*([^\*\s]+)\*/g, '$1');
+    
+    text = text.replace(/<br><br>/g, '</p><p>');
+    
+    text = text.replace(/<\/p><p><\/p><p>/g, '</p><p>');
+    
+    return '<p>' + text + '</p>';
 }
 
 function initCitySelectors() {
@@ -241,7 +474,7 @@ function initCitySelectors() {
         
         var beijingTime = new Date();
         var trueSolarTime = calculateTrueSolarTime(beijingTime, currentCity.lat, currentCity.lng);
-        updatePan(trueSolarTime.getTime(), currentCity);
+        updatePan(trueSolarTime.getTime(), currentCity, '综合', '');
     });
 }
 
@@ -250,7 +483,7 @@ function initRealTimePan() {
         e.preventDefault();
         var beijingTime = new Date();
         var trueSolarTime = calculateTrueSolarTime(beijingTime, currentCity.lat, currentCity.lng);
-        updatePan(trueSolarTime.getTime(), currentCity);
+        updatePan(trueSolarTime.getTime(), currentCity, '综合', '');
     });
 }
 
@@ -262,8 +495,25 @@ function initCustomPan() {
     var timeStr = String(now.getHours()).padStart(2, '0') + ':' +
         String(now.getMinutes()).padStart(2, '0');
     
-    $('#date').val(dateStr);
-    $('#time').val(timeStr);
+    var savedData = localStorage.getItem('qimen_custom_pan');
+    if (savedData) {
+        try {
+            savedData = JSON.parse(savedData);
+            $('#type').val(savedData.type || '四柱');
+            $('#method').val(savedData.method || '时家');
+            $('#date').val(savedData.date || dateStr);
+            $('#time').val(savedData.time || timeStr);
+            $('#location').val(savedData.location || '');
+            $('#purpose').val(savedData.purpose || '综合');
+            $('#question').val(savedData.question || '');
+        } catch (e) {
+            $('#date').val(dateStr);
+            $('#time').val(timeStr);
+        }
+    } else {
+        $('#date').val(dateStr);
+        $('#time').val(timeStr);
+    }
     
     $('#submitCustomPan').click(function() {
         var dateStr = $('#date').val();
@@ -279,6 +529,17 @@ function initCustomPan() {
         var trueSolarTime = calculateTrueSolarTime(beijingTime, currentCity.lat, currentCity.lng);
         
         var question = $('#question').val();
+        
+        var customPanData = {
+            type: $('#type').val(),
+            method: $('#method').val(),
+            date: dateStr,
+            time: timeStr,
+            location: $('#location').val(),
+            purpose: $('#purpose').val(),
+            question: question
+        };
+        localStorage.setItem('qimen_custom_pan', JSON.stringify(customPanData));
         
         var url = '/api/qimen?' + $.param({
             timestamp: trueSolarTime.getTime(),
@@ -318,14 +579,20 @@ function loadInitialPan() {
     
     var urlParams = new URLSearchParams(window.location.search);
     var existingTimestamp = urlParams.get('timestamp');
+    var purpose = urlParams.get('purpose') || '综合';
+    var question = urlParams.get('question') || '';
     
-    if (!existingTimestamp || Math.abs(currentTimestamp - parseInt(existingTimestamp)) > 1000) {
+    if (!existingTimestamp) {
         window.location.href = '/?' + $.param({
             timestamp: currentTimestamp,
             location: currentCity.province + currentCity.city + currentCity.district,
             lat: currentCity.lat,
-            lng: currentCity.lng
+            lng: currentCity.lng,
+            purpose: purpose,
+            question: question
         });
+    } else {
+        updatePan(parseInt(existingTimestamp), currentCity, purpose, question);
     }
 }
 
